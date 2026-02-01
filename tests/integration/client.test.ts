@@ -123,10 +123,9 @@ describe('Client Integration', () => {
     });
 
     it('getMachine throws NotFoundError for missing machine', async () => {
-      server.expectRequest(Operation.GET_MACHINE).respondWithError(
-        'MACHINE_NOT_FOUND',
-        'Machine not found'
-      );
+      server
+        .expectRequest(Operation.GET_MACHINE)
+        .respondWithError('MACHINE_NOT_FOUND', 'Machine not found');
 
       await expect(client.getMachine('nonexistent', 1)).rejects.toThrow(NotFoundError);
     });
@@ -245,15 +244,16 @@ describe('Client Integration', () => {
     });
 
     it('applyEvent throws ConflictError on state mismatch', async () => {
-      server.expectRequest(Operation.APPLY_EVENT).respondWithError(
-        'CONFLICT',
-        'State mismatch',
-        { expectedState: 'created', actualState: 'paid' }
-      );
+      server
+        .expectRequest(Operation.APPLY_EVENT)
+        .respondWithError('CONFLICT', 'State mismatch', {
+          expectedState: 'created',
+          actualState: 'paid',
+        });
 
-      await expect(
-        client.applyEvent('i-123', 'PAY', { expectedState: 'created' })
-      ).rejects.toThrow(ConflictError);
+      await expect(client.applyEvent('i-123', 'PAY', { expectedState: 'created' })).rejects.toThrow(
+        ConflictError
+      );
     });
 
     it('batch executes multiple operations', async () => {
@@ -335,11 +335,9 @@ describe('Client Integration', () => {
     });
 
     it('handles server errors correctly', async () => {
-      server.expectRequest(Operation.GET_INSTANCE).respondWithError(
-        'INSTANCE_NOT_FOUND',
-        'Instance not found',
-        { instanceId: 'i-unknown' }
-      );
+      server
+        .expectRequest(Operation.GET_INSTANCE)
+        .respondWithError('INSTANCE_NOT_FOUND', 'Instance not found', { instanceId: 'i-unknown' });
 
       try {
         await client.getInstance('i-unknown');

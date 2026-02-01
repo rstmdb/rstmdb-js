@@ -12,12 +12,7 @@ import {
   isStreamEndMessage,
 } from './protocol/messages.js';
 import { SubscriptionManager } from './streaming/manager.js';
-import {
-  ConnectionError,
-  TimeoutError,
-  ProtocolError,
-  ServerError,
-} from './errors/classes.js';
+import { ConnectionError, TimeoutError, ProtocolError, ServerError } from './errors/classes.js';
 import { ErrorCode } from './errors/codes.js';
 import type { ResolvedConfig } from './types/config.js';
 
@@ -170,10 +165,7 @@ export class Connection extends EventEmitter {
   /**
    * Send a request and wait for response.
    */
-  async request<T>(
-    op: Operation,
-    params?: object
-  ): Promise<T> {
+  async request<T>(op: Operation, params?: object): Promise<T> {
     // Allow requests during HANDSHAKING (for HELLO/AUTH) and CONNECTED states
     if (this.state !== ConnectionState.CONNECTED && this.state !== ConnectionState.HANDSHAKING) {
       throw new ConnectionError('Not connected');
@@ -388,7 +380,9 @@ export class Connection extends EventEmitter {
     if (this.reconnectAttempt >= this.config.reconnectMaxAttempts) {
       this.emit(
         'error',
-        new ConnectionError(`Max reconnection attempts (${this.config.reconnectMaxAttempts}) reached`)
+        new ConnectionError(
+          `Max reconnection attempts (${this.config.reconnectMaxAttempts}) reached`
+        )
       );
       return;
     }

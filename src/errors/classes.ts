@@ -5,10 +5,7 @@ import { RstmdbError } from './base.js';
  * Connection-related errors.
  */
 export class ConnectionError extends RstmdbError {
-  constructor(
-    message: string,
-    options?: { cause?: Error; details?: Record<string, unknown> }
-  ) {
+  constructor(message: string, options?: { cause?: Error; details?: Record<string, unknown> }) {
     super(message, ErrorCode.CONNECTION_FAILED, {
       retryable: true,
       ...options,
@@ -21,10 +18,7 @@ export class ConnectionError extends RstmdbError {
  * Timeout errors.
  */
 export class TimeoutError extends RstmdbError {
-  constructor(
-    message: string,
-    options?: { cause?: Error; details?: Record<string, unknown> }
-  ) {
+  constructor(message: string, options?: { cause?: Error; details?: Record<string, unknown> }) {
     super(message, ErrorCode.TIMEOUT, {
       retryable: true,
       ...options,
@@ -148,10 +142,7 @@ export class AuthenticationError extends ServerError {
  * Invalid state transition errors.
  */
 export class InvalidTransitionError extends ServerError {
-  constructor(
-    message: string,
-    options?: { details?: Record<string, unknown>; cause?: Error }
-  ) {
+  constructor(message: string, options?: { details?: Record<string, unknown>; cause?: Error }) {
     super(message, ErrorCode.INVALID_TRANSITION, { retryable: false, ...options });
     this.name = 'InvalidTransitionError';
   }
@@ -161,10 +152,7 @@ export class InvalidTransitionError extends ServerError {
  * Guard condition failed errors.
  */
 export class GuardFailedError extends ServerError {
-  constructor(
-    message: string,
-    options?: { details?: Record<string, unknown>; cause?: Error }
-  ) {
+  constructor(message: string, options?: { details?: Record<string, unknown>; cause?: Error }) {
     super(message, ErrorCode.GUARD_FAILED, { retryable: false, ...options });
     this.name = 'GuardFailedError';
   }

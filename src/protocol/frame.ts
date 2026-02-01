@@ -84,12 +84,12 @@ export class FrameEncoder {
     const frame = Buffer.allocUnsafe(HEADER_SIZE + headerExtLen + payloadLen);
 
     // Write header (18 bytes)
-    frame.writeUInt32BE(FRAME_MAGIC, 0);       // magic (4 bytes) - "RCPX"
+    frame.writeUInt32BE(FRAME_MAGIC, 0); // magic (4 bytes) - "RCPX"
     frame.writeUInt16BE(PROTOCOL_VERSION, 4); // version (2 bytes)
-    frame.writeUInt16BE(flags, 6);             // flags (2 bytes)
-    frame.writeUInt16BE(headerExtLen, 8);      // header_ext_len (2 bytes) - 0 = no extension
-    frame.writeUInt32BE(payloadLen, 10);       // payload_len (4 bytes)
-    frame.writeUInt32BE(crcValue, 14);         // crc32c (4 bytes)
+    frame.writeUInt16BE(flags, 6); // flags (2 bytes)
+    frame.writeUInt16BE(headerExtLen, 8); // header_ext_len (2 bytes) - 0 = no extension
+    frame.writeUInt32BE(payloadLen, 10); // payload_len (4 bytes)
+    frame.writeUInt32BE(crcValue, 14); // crc32c (4 bytes)
 
     // Copy payload (no header extension)
     payload.copy(frame, HEADER_SIZE);
@@ -161,7 +161,7 @@ export class FrameDecoder {
     const payload = this.buffer.subarray(payloadStart, payloadStart + payloadLen);
 
     // Verify CRC if present
-    if (this.verifyCrc && (flags & FrameFlags.CRC_PRESENT)) {
+    if (this.verifyCrc && flags & FrameFlags.CRC_PRESENT) {
       if (!verifyCrc32c(payload, crcValue)) {
         throw new ProtocolError('CRC32C checksum mismatch', ErrorCode.BAD_REQUEST);
       }

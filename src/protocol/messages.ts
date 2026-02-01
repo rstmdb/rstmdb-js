@@ -132,10 +132,7 @@ export function isStreamEndMessage(msg: ServerMessage): msg is StreamEndMessage 
  * Parse bigint fields from server response.
  * Server sends bigints as strings.
  */
-export function parseBigIntFields<T extends Record<string, unknown>>(
-  obj: T,
-  fields: string[]
-): T {
+export function parseBigIntFields<T extends Record<string, unknown>>(obj: T, fields: string[]): T {
   const result: Record<string, unknown> = { ...obj };
   for (const field of fields) {
     const value = result[field];
