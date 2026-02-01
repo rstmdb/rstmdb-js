@@ -244,12 +244,10 @@ describe('Client Integration', () => {
     });
 
     it('applyEvent throws ConflictError on state mismatch', async () => {
-      server
-        .expectRequest(Operation.APPLY_EVENT)
-        .respondWithError('CONFLICT', 'State mismatch', {
-          expectedState: 'created',
-          actualState: 'paid',
-        });
+      server.expectRequest(Operation.APPLY_EVENT).respondWithError('CONFLICT', 'State mismatch', {
+        expectedState: 'created',
+        actualState: 'paid',
+      });
 
       await expect(client.applyEvent('i-123', 'PAY', { expectedState: 'created' })).rejects.toThrow(
         ConflictError
