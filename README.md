@@ -110,18 +110,18 @@ await client.connect();
 
 ### Configuration Options
 
-| Option                 | Default  | Description                                 |
-| ---------------------- | -------- | ------------------------------------------- |
-| `host`                 | required | Server hostname                             |
-| `port`                 | `7401`   | Server port                                 |
-| `connectTimeout`       | `10000`  | Connection timeout (ms)                     |
-| `requestTimeout`       | `30000`  | Request timeout (ms)                        |
-| `authToken`            | -        | Bearer token for authentication             |
-| `tls`                  | -        | `true` for system CA, or `TlsConfig` object |
-| `reconnect`            | `true`   | Auto-reconnect on disconnect                |
-| `reconnectInterval`    | `1000`   | Initial reconnect delay (ms)                |
-| `reconnectMaxAttempts` | `10`     | Max reconnection attempts                   |
-| `clientName`           | -        | Client identifier sent in handshake         |
+| Option | Default | Description |
+| ------ | ------- | ----------- |
+| `host` | required | Server hostname |
+| `port` | `7401` | Server port |
+| `connectTimeout` | `10000` | Connection timeout (ms) |
+| `requestTimeout` | `30000` | Request timeout (ms) |
+| `authToken` | - | Bearer token for authentication |
+| `tls` | - | `true` for system CA, or TlsConfig |
+| `reconnect` | `true` | Auto-reconnect on disconnect |
+| `reconnectInterval` | `1000` | Initial reconnect delay (ms) |
+| `reconnectMaxAttempts` | `10` | Max reconnection attempts |
+| `clientName` | - | Client identifier in handshake |
 
 ## API Reference
 
