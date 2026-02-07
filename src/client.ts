@@ -26,8 +26,11 @@ import type {
   BatchOptions,
   BatchResult,
   ServerInfo,
+  ListInstancesOptions,
+  ListInstancesResult,
   WalReadOptions,
   WalReadResult,
+  WalStatsResult,
   SnapshotResult,
   CompactOptions,
   CompactResult,
@@ -312,6 +315,45 @@ export class Client extends EventEmitter {
     await this.connection.request(Operation.DELETE_INSTANCE, params);
   }
 
+  /**
+   * List instances with optional filtering and pagination.
+   */
+  async listInstances(options?: ListInstancesOptions): Promise<ListInstancesResult> {
+    const params: Record<string, unknown> = {};
+    if (options?.machine) params['machine'] = options.machine;
+    if (options?.state) params['state'] = options.state;
+    if (options?.limit !== undefined) params['limit'] = options.limit;
+    if (options?.offset !== undefined) params['offset'] = options.offset;
+
+    const result = await this.connection.request<{
+      instances: Array<{
+        id: string;
+        machine: string;
+        version: number;
+        state: string;
+        created_at: number;
+        updated_at: number;
+        last_wal_offset: number;
+      }>;
+      total: number;
+      has_more: boolean;
+    }>(Operation.LIST_INSTANCES, params);
+
+    return {
+      instances: result.instances.map((inst) => ({
+        id: inst.id,
+        machine: inst.machine,
+        version: inst.version,
+        state: inst.state,
+        createdAt: inst.created_at,
+        updatedAt: inst.updated_at,
+        lastWalOffset: BigInt(inst.last_wal_offset),
+      })),
+      total: result.total,
+      hasMore: result.has_more,
+    };
+  }
+
   // ─────────────────────────────────────────────────────────────────────────
   // Event Operations
   // ─────────────────────────────────────────────────────────────────────────
@@ -421,6 +463,39 @@ export class Client extends EventEmitter {
       })),
       hasMore: result.hasMore,
       nextOffset: result.nextOffset ? BigInt(result.nextOffset) : undefined,
+    };
+  }
+
+  /**
+   * Get WAL statistics.
+   */
+  async walStats(): Promise<WalStatsResult> {
+    const result = await this.connection.request<{
+      entry_count: number;
+      segment_count: number;
+      total_size_bytes: number;
+      latest_offset?: number;
+      io_stats: {
+        bytes_written: number;
+        bytes_read: number;
+        writes: number;
+        reads: number;
+        fsyncs: number;
+      };
+    }>(Operation.WAL_STATS);
+
+    return {
+      entryCount: result.entry_count,
+      segmentCount: result.segment_count,
+      totalSizeBytes: result.total_size_bytes,
+      latestOffset: result.latest_offset !== undefined ? BigInt(result.latest_offset) : undefined,
+      ioStats: {
+        bytesWritten: result.io_stats.bytes_written,
+        bytesRead: result.io_stats.bytes_read,
+        writes: result.io_stats.writes,
+        reads: result.io_stats.reads,
+        fsyncs: result.io_stats.fsyncs,
+      },
     };
   }
 

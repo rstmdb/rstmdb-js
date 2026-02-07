@@ -190,3 +190,100 @@ export interface CompactResult {
   /** Bytes reclaimed */
   bytesReclaimed: bigint;
 }
+
+/**
+ * Options for LIST_INSTANCES operation.
+ */
+export interface ListInstancesOptions {
+  /** Filter by machine name */
+  machine?: string;
+
+  /** Filter by current state */
+  state?: string;
+
+  /** Maximum number of instances to return */
+  limit?: number;
+
+  /** Number of instances to skip (for pagination) */
+  offset?: number;
+}
+
+/**
+ * Instance summary for list responses (excludes ctx for efficiency).
+ */
+export interface InstanceSummary {
+  /** Instance ID */
+  id: string;
+
+  /** Machine name */
+  machine: string;
+
+  /** Machine version */
+  version: number;
+
+  /** Current state */
+  state: string;
+
+  /** Creation timestamp (Unix ms) */
+  createdAt: number;
+
+  /** Last update timestamp (Unix ms) */
+  updatedAt: number;
+
+  /** Last WAL offset */
+  lastWalOffset: bigint;
+}
+
+/**
+ * Result of LIST_INSTANCES operation.
+ */
+export interface ListInstancesResult {
+  /** List of instance summaries */
+  instances: InstanceSummary[];
+
+  /** Total number of matching instances */
+  total: number;
+
+  /** Whether more instances exist beyond the limit */
+  hasMore: boolean;
+}
+
+/**
+ * WAL I/O statistics.
+ */
+export interface WalIoStats {
+  /** Total bytes written */
+  bytesWritten: number;
+
+  /** Total bytes read */
+  bytesRead: number;
+
+  /** Number of write operations */
+  writes: number;
+
+  /** Number of read operations */
+  reads: number;
+
+  /** Number of fsync calls */
+  fsyncs: number;
+}
+
+/**
+ * Result of WAL_STATS operation.
+ */
+export interface WalStatsResult {
+  /** Total number of entries in WAL */
+  entryCount: number;
+
+  /** Number of WAL segments */
+  segmentCount: number;
+
+  /** Total size of WAL in bytes */
+  totalSizeBytes: number;
+
+  /** Latest WAL offset */
+  latestOffset?: bigint;
+
+  /** I/O statistics */
+  ioStats: WalIoStats;
+}

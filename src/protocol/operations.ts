@@ -16,6 +16,7 @@ export enum Operation {
   // Instance operations
   CREATE_INSTANCE = 'CREATE_INSTANCE',
   GET_INSTANCE = 'GET_INSTANCE',
+  LIST_INSTANCES = 'LIST_INSTANCES',
   DELETE_INSTANCE = 'DELETE_INSTANCE',
 
   // Event operations
@@ -24,6 +25,7 @@ export enum Operation {
 
   // WAL operations
   WAL_READ = 'WAL_READ',
+  WAL_STATS = 'WAL_STATS',
   SNAPSHOT_INSTANCE = 'SNAPSHOT_INSTANCE',
   COMPACT = 'COMPACT',
 

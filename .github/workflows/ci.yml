@@ -47,3 +47,15 @@ jobs:
 
       - name: Check formatting
         run: npm run format:check
+
+  markdown:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Lint Markdown
+        uses: DavidAnson/markdownlint-cli2-action@v19
+        with:
+          globs: '**/*.md'

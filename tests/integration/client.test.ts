@@ -277,9 +277,133 @@ describe('Client Integration', () => {
     });
   });
 
+  describe('instance listing', () => {
+    beforeEach(async () => {
+      await client.connect();
+    });
+
+    it('listInstances returns all instances', async () => {
+      server.expectRequest(Operation.LIST_INSTANCES).respondWith({
+        instances: [
+          {
+            id: 'i-001',
+            machine: 'order',
+            version: 1,
+            state: 'created',
+            created_at: 1700000000000,
+            updated_at: 1700000000000,
+            last_wal_offset: '100',
+          },
+          {
+            id: 'i-002',
+            machine: 'order',
+            version: 1,
+            state: 'paid',
+            created_at: 1700000001000,
+            updated_at: 1700000002000,
+            last_wal_offset: '150',
+          },
+        ],
+        total: 2,
+        has_more: false,
+      });
+
+      const result = await client.listInstances();
+
+      expect(result.instances).toHaveLength(2);
+      expect(result.total).toBe(2);
+      expect(result.hasMore).toBe(false);
+      expect(result.instances[0]?.id).toBe('i-001');
+      expect(result.instances[0]?.state).toBe('created');
+      expect(result.instances[1]?.lastWalOffset).toBe(150n);
+    });
+
+    it('listInstances with filters', async () => {
+      server.expectRequest(Operation.LIST_INSTANCES).respondWith({
+        instances: [
+          {
+            id: 'i-001',
+            machine: 'order',
+            version: 1,
+            state: 'pending',
+            created_at: 1700000000000,
+            updated_at: 1700000000000,
+            last_wal_offset: '100',
+          },
+        ],
+        total: 1,
+        has_more: false,
+      });
+
+      const result = await client.listInstances({
+        machine: 'order',
+        state: 'pending',
+      });
+
+      expect(result.instances).toHaveLength(1);
+      expect(result.instances[0]?.machine).toBe('order');
+      expect(result.instances[0]?.state).toBe('pending');
+    });
+
+    it('listInstances with pagination', async () => {
+      server.expectRequest(Operation.LIST_INSTANCES).respondWith({
+        instances: [
+          {
+            id: 'i-003',
+            machine: 'order',
+            version: 1,
+            state: 'created',
+            created_at: 1700000000000,
+            updated_at: 1700000000000,
+            last_wal_offset: '100',
+          },
+        ],
+        total: 5,
+        has_more: true,
+      });
+
+      const result = await client.listInstances({
+        limit: 1,
+        offset: 2,
+      });
+
+      expect(result.instances).toHaveLength(1);
+      expect(result.total).toBe(5);
+      expect(result.hasMore).toBe(true);
+    });
+  });
+
   describe('WAL operations', () => {
     beforeEach(async () => {
       await client.connect();
+    });
+
+    it('walStats returns WAL statistics', async () => {
+      server.expectRequest(Operation.WAL_STATS).respondWith({
+        entry_count: 1000,
+        segment_count: 5,
+        total_size_bytes: 1048576,
+        latest_offset: '999',
+        io_stats: {
+          bytes_written: 2097152,
+          bytes_read: 524288,
+          writes: 500,
+          reads: 100,
+          fsyncs: 50,
+        },
+      });
+
+      const result = await client.walStats();
+
+      expect(result.entryCount).toBe(1000);
+      expect(result.segmentCount).toBe(5);
+      expect(result.totalSizeBytes).toBe(1048576);
+      expect(result.latestOffset).toBe(999n);
+      expect(result.ioStats.bytesWritten).toBe(2097152);
+      expect(result.ioStats.bytesRead).toBe(524288);
+      expect(result.ioStats.writes).toBe(500);
+      expect(result.ioStats.reads).toBe(100);
+      expect(result.ioStats.fsyncs).toBe(50);
     });
 
     it('walRead reads WAL entries', async () => {
