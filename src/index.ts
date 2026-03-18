@@ -49,6 +49,7 @@ export {
   type SnapshotResult,
   type CompactOptions,
   type CompactResult,
+  type FlushAllResult,
 } from './types/results.js';
 
 // Streaming types

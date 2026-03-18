@@ -28,6 +28,7 @@ export enum Operation {
   WAL_STATS = 'WAL_STATS',
   SNAPSHOT_INSTANCE = 'SNAPSHOT_INSTANCE',
   COMPACT = 'COMPACT',
+  FLUSH_ALL = 'FLUSH_ALL',
 
   // Watch operations
   WATCH_INSTANCE = 'WATCH_INSTANCE',

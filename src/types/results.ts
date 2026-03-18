@@ -287,3 +287,17 @@ export interface WalStatsResult {
   /** I/O statistics */
   ioStats: WalIoStats;
 }
+
+/**
+ * Result of FLUSH_ALL operation.
+ */
+export interface FlushAllResult {
+  /** Whether the flush completed successfully */
+  flushed: boolean;
+
+  /** Number of instances removed */
+  instancesRemoved: number;
+
+  /** Number of machine definitions removed */
+  machinesRemoved: number;
+}

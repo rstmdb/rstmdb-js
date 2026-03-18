@@ -449,6 +449,20 @@ describe('Client Integration', () => {
       expect(result.segmentsDeleted).toBe(3);
       expect(result.bytesReclaimed).toBe(1048576n);
     });
+
+    it('flushAll clears all data', async () => {
+      server.expectRequest(Operation.FLUSH_ALL).respondWith({
+        flushed: true,
+        instances_removed: 42,
+        machines_removed: 5,
+      });
+
+      const result = await client.flushAll();
+
+      expect(result.flushed).toBe(true);
+      expect(result.instancesRemoved).toBe(42);
+      expect(result.machinesRemoved).toBe(5);
+    });
   });
 
   describe('error handling', () => {

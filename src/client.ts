@@ -34,6 +34,7 @@ import type {
   SnapshotResult,
   CompactOptions,
   CompactResult,
+  FlushAllResult,
 } from './types/results.js';
 
 /**
@@ -532,6 +533,25 @@ export class Client extends EventEmitter {
       snapshotsCreated: result.snapshots_created,
       segmentsDeleted: result.segments_deleted,
       bytesReclaimed: BigInt(result.bytes_reclaimed),
+    };
+  }
+
+  /**
+   * Clear all instances and machine definitions from the database.
+   *
+   * Requires `storage.allow_flush_all: true` in server configuration.
+   */
+  async flushAll(): Promise<FlushAllResult> {
+    const result = await this.connection.request<{
+      flushed: boolean;
+      instances_removed: number;
+      machines_removed: number;
+    }>(Operation.FLUSH_ALL, {});
+
+    return {
+      flushed: result.flushed,
+      instancesRemoved: result.instances_removed,
+      machinesRemoved: result.machines_removed,
     };
   }
 
