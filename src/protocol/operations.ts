@@ -6,7 +6,9 @@ export enum Operation {
   HELLO = 'HELLO',
   AUTH = 'AUTH',
   PING = 'PING',
+  BYE = 'BYE',
   INFO = 'INFO',
+  REPLICATION_STATUS = 'REPLICATION_STATUS',
 
   // Machine operations
   PUT_MACHINE = 'PUT_MACHINE',
@@ -34,6 +36,11 @@ export enum Operation {
   WATCH_INSTANCE = 'WATCH_INSTANCE',
   WATCH_ALL = 'WATCH_ALL',
   UNWATCH = 'UNWATCH',
+
+  // Hot backup operations
+  BACKUP_BEGIN = 'BACKUP_BEGIN',
+  BACKUP_CHUNK = 'BACKUP_CHUNK',
+  BACKUP_END = 'BACKUP_END',
 }
 
 /**

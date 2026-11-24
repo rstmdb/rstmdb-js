@@ -66,6 +66,7 @@ export class Connection extends EventEmitter {
   private reconnectAttempt = 0;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private closing = false;
+  private negotiatedFeatures: string[] = [];
 
   constructor(config: ResolvedConfig, subscriptions: SubscriptionManager) {
     super();
@@ -73,6 +74,13 @@ export class Connection extends EventEmitter {
     this.subscriptions = subscriptions;
     this.encoder = new FrameEncoder({ useCrc: true });
     this.decoder = new FrameDecoder({ verifyCrc: true });
+  }
+
+  /**
+   * Get the features negotiated during the HELLO handshake.
+   */
+  getNegotiatedFeatures(): readonly string[] {
+    return [...this.negotiatedFeatures];
   }
 
   /**
@@ -305,7 +313,7 @@ export class Connection extends EventEmitter {
       }
     } catch (error) {
       // Protocol error - close connection
-      this.emit('error', error as Error);
+      this.emit('error', error);
       this.socket?.destroy();
     }
   }
@@ -341,16 +349,18 @@ export class Connection extends EventEmitter {
     const helloParams: Record<string, unknown> = {
       protocol_version: 1,
       wire_modes: ['binary_json'],
-      features: ['idempotency', 'batch'],
+      features: ['idempotency', 'durable_idempotency', 'batch'],
     };
     if (this.config.clientName) {
       helloParams['client_name'] = this.config.clientName;
     }
 
-    const helloResult = await this.request<{ protocol_version: number; wire_mode: string }>(
-      Operation.HELLO,
-      helloParams
-    );
+    const helloResult = await this.request<{
+      protocol_version: number;
+      wire_mode: string;
+      features?: string[];
+    }>(Operation.HELLO, helloParams);
+    this.negotiatedFeatures = Array.isArray(helloResult.features) ? helloResult.features : [];
 
     // Verify protocol version
     if (helloResult.protocol_version !== 1) {

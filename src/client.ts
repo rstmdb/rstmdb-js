@@ -35,6 +35,12 @@ import type {
   CompactOptions,
   CompactResult,
   FlushAllResult,
+  ReplicationStatusResult,
+  BackupBeginOptions,
+  BackupBeginResult,
+  BackupChunkOptions,
+  BackupChunkResult,
+  BackupEndResult,
 } from './types/results.js';
 
 /**
@@ -163,6 +169,13 @@ export class Client extends EventEmitter {
     return this.connection.getState() === ConnectionState.CONNECTED;
   }
 
+  /**
+   * Get features negotiated with the server during HELLO.
+   */
+  getNegotiatedFeatures(): readonly string[] {
+    return this.connection.getNegotiatedFeatures();
+  }
+
   // ─────────────────────────────────────────────────────────────────────────
   // System Operations
   // ─────────────────────────────────────────────────────────────────────────
@@ -198,6 +211,30 @@ export class Client extends EventEmitter {
       walSegmentSize: result.wal_segment_size,
       authRequired: result.auth_required,
       features: result.features,
+    };
+  }
+
+  async replicationStatus(): Promise<ReplicationStatusResult> {
+    const result = await this.connection.request<{
+      role: string;
+      mode?: string;
+      primary_sequence?: number;
+      connected_replicas?: number;
+      upstream?: string;
+      last_applied_sequence?: number;
+      lag_entries?: number;
+      lag_seconds?: number;
+    }>(Operation.REPLICATION_STATUS);
+
+    return {
+      role: result.role,
+      mode: result.mode,
+      primarySequence: result.primary_sequence,
+      connectedReplicas: result.connected_replicas,
+      upstream: result.upstream,
+      lastAppliedSequence: result.last_applied_sequence,
+      lagEntries: result.lag_entries,
+      lagSeconds: result.lag_seconds,
     };
   }
 
@@ -267,7 +304,7 @@ export class Client extends EventEmitter {
   ): Promise<CreateInstanceResult> {
     const params: Record<string, unknown> = { machine, version };
     if (options?.instanceId) params['instance_id'] = options.instanceId;
-    if (options?.initialCtx) params['initial_ctx'] = options.initialCtx;
+    if (options?.initialCtx !== undefined) params['initial_ctx'] = options.initialCtx;
     if (options?.idempotencyKey) params['idempotency_key'] = options.idempotencyKey;
 
     const result = await this.connection.request<{
@@ -553,6 +590,62 @@ export class Client extends EventEmitter {
       instancesRemoved: result.instances_removed,
       machinesRemoved: result.machines_removed,
     };
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Hot Backup Operations
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Stage a hot backup archive on the server.
+   */
+  async backupBegin(options?: BackupBeginOptions): Promise<BackupBeginResult> {
+    const params: Record<string, unknown> = {};
+    if (options?.compression) params['compression'] = options.compression;
+
+    const result = await this.connection.request<{
+      backup_id: string;
+      manifest: Record<string, unknown>;
+      total_bytes: number;
+      chunk_size: number;
+    }>(Operation.BACKUP_BEGIN, params);
+
+    return {
+      backupId: result.backup_id,
+      manifest: result.manifest,
+      totalBytes: result.total_bytes,
+      chunkSize: result.chunk_size,
+    };
+  }
+
+  /**
+   * Read a chunk from a staged backup.
+   */
+  async backupChunk(backupId: string, options?: BackupChunkOptions): Promise<BackupChunkResult> {
+    const params: Record<string, unknown> = {
+      backup_id: backupId,
+      offset: options?.offset ?? 0,
+    };
+    if (options?.len !== undefined) params['len'] = options.len;
+
+    const result = await this.connection.request<{
+      bytes: string;
+      eof: boolean;
+    }>(Operation.BACKUP_CHUNK, params);
+
+    return {
+      bytes: result.bytes,
+      eof: result.eof,
+    };
+  }
+
+  /**
+   * Release a staged backup session.
+   */
+  async backupEnd(backupId: string): Promise<BackupEndResult> {
+    return this.connection.request<BackupEndResult>(Operation.BACKUP_END, {
+      backup_id: backupId,
+    });
   }
 
   // ─────────────────────────────────────────────────────────────────────────

@@ -463,6 +463,66 @@ describe('Client Integration', () => {
       expect(result.instancesRemoved).toBe(42);
       expect(result.machinesRemoved).toBe(5);
     });
+
+    it('replicationStatus returns role status', async () => {
+      server.expectRequest(Operation.REPLICATION_STATUS).respondWith({
+        role: 'standalone',
+      });
+
+      const status = await client.replicationStatus();
+      expect(status.role).toBe('standalone');
+    });
+
+    it('backupBegin, backupChunk, and backupEnd roundtrip', async () => {
+      server.expectRequest(Operation.BACKUP_BEGIN).respondWith({
+        backup_id: 'bak-1',
+        manifest: { version: 1 },
+        total_bytes: 128,
+        chunk_size: 64,
+      });
+      server.expectRequest(Operation.BACKUP_CHUNK).respondWith({
+        bytes: 'YWJj',
+        eof: true,
+      });
+      server.expectRequest(Operation.BACKUP_END).respondWith({ ok: true });
+
+      const beg = await client.backupBegin({ compression: 'gzip' });
+      expect(beg.backupId).toBe('bak-1');
+      expect(beg.totalBytes).toBe(128);
+
+      const chk = await client.backupChunk(beg.backupId, { offset: 0, len: 64 });
+      expect(chk.bytes).toBe('YWJj');
+      expect(chk.eof).toBe(true);
+
+      const end = await client.backupEnd(beg.backupId);
+      expect(end.ok).toBe(true);
+    });
+
+    it('HELLO negotiates durable_idempotency feature', async () => {
+      await client.close();
+      const customServer = new MockServer();
+      customServer.setDefaultResponse(Operation.HELLO, {
+        protocol_version: 1,
+        wire_mode: 'binary_json',
+        features: ['idempotency', 'durable_idempotency', 'batch'],
+      });
+      let helloFeatures: unknown;
+      customServer.onRequestReceived((req) => {
+        if (req.op === Operation.HELLO) {
+          helloFeatures = (req.params as Record<string, unknown> | undefined)?.['features'];
+        }
+      });
+      await customServer.start();
+      const c = new Client({ host: '127.0.0.1', port: customServer.port, reconnect: false });
+      try {
+        await c.connect();
+        expect(helloFeatures).toContain('durable_idempotency');
+        expect(c.getNegotiatedFeatures()).toContain('durable_idempotency');
+      } finally {
+        await c.close();
+        await customServer.close();
+      }
+    });
   });
 
   describe('error handling', () => {

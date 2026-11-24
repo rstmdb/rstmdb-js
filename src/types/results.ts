@@ -301,3 +301,87 @@ export interface FlushAllResult {
   /** Number of machine definitions removed */
   machinesRemoved: number;
 }
+
+/**
+ * Result of REPLICATION_STATUS operation.
+ */
+export interface ReplicationStatusResult {
+  /** Server replication role: standalone, primary, or replica */
+  role: string;
+
+  /** Replication mode for primary */
+  mode?: string;
+
+  /** Primary sequence number */
+  primarySequence?: number;
+
+  /** Connected replicas count */
+  connectedReplicas?: number;
+
+  /** Upstream address for replicas */
+  upstream?: string;
+
+  /** Last applied sequence on replica */
+  lastAppliedSequence?: number;
+
+  /** Lag entries */
+  lagEntries?: number;
+
+  /** Lag seconds */
+  lagSeconds?: number;
+}
+
+/**
+ * Options for BACKUP_BEGIN operation.
+ */
+export interface BackupBeginOptions {
+  /** Archive compression ('gzip' | 'none') */
+  compression?: 'gzip' | 'none';
+}
+
+/**
+ * Result of BACKUP_BEGIN operation.
+ */
+export interface BackupBeginResult {
+  /** Backup session ID */
+  backupId: string;
+
+  /** Backup manifest metadata */
+  manifest: Record<string, unknown>;
+
+  /** Total staged archive bytes */
+  totalBytes: number;
+
+  /** Chunk size in bytes */
+  chunkSize: number;
+}
+
+/**
+ * Options for BACKUP_CHUNK operation.
+ */
+export interface BackupChunkOptions {
+  /** Byte offset */
+  offset?: number;
+
+  /** Chunk length */
+  len?: number;
+}
+
+/**
+ * Result of BACKUP_CHUNK operation.
+ */
+export interface BackupChunkResult {
+  /** Base64-encoded chunk bytes */
+  bytes: string;
+
+  /** Whether end of archive has been reached */
+  eof: boolean;
+}
+
+/**
+ * Result of BACKUP_END operation.
+ */
+export interface BackupEndResult {
+  /** Whether cleanup succeeded */
+  ok: boolean;
+}
