@@ -32,6 +32,7 @@ describe('isRetryableCode', () => {
     expect(isRetryableCode(ErrorCode.RATE_LIMITED)).toBe(true);
     expect(isRetryableCode(ErrorCode.WAL_IO_ERROR)).toBe(true);
     expect(isRetryableCode(ErrorCode.INTERNAL_ERROR)).toBe(true);
+    expect(isRetryableCode(ErrorCode.REPLICATION_TIMEOUT)).toBe(true);
   });
 
   it('returns false for non-retryable codes', () => {
@@ -40,6 +41,10 @@ describe('isRetryableCode', () => {
     expect(isRetryableCode(ErrorCode.UNAUTHORIZED)).toBe(false);
     expect(isRetryableCode(ErrorCode.INVALID_TRANSITION)).toBe(false);
     expect(isRetryableCode(ErrorCode.BAD_REQUEST)).toBe(false);
+    expect(isRetryableCode(ErrorCode.IDEMPOTENCY_CONFLICT)).toBe(false);
+    expect(isRetryableCode(ErrorCode.GUARD_UNKNOWN)).toBe(false);
+    expect(isRetryableCode(ErrorCode.READ_ONLY_MODE)).toBe(false);
+    expect(isRetryableCode(ErrorCode.REPLICATION_ERROR)).toBe(false);
   });
 });
 
@@ -172,10 +177,32 @@ describe('ServerError', () => {
     const error = ServerError.fromResponse({
       code: 'SOME_UNKNOWN_CODE',
       message: 'Unknown error',
+      retryable: false,
     });
 
     expect(error).toBeInstanceOf(ServerError);
     expect(error.name).toBe('ServerError');
+    expect(error.code).toBe('SOME_UNKNOWN_CODE');
+    expect(error.retryable).toBe(false);
+  });
+
+  it('maps IDEMPOTENCY_CONFLICT to ConflictError and preserves response retryable flag', () => {
+    const idemp = ServerError.fromResponse({
+      code: 'IDEMPOTENCY_CONFLICT',
+      message: 'Idempotency key reused',
+      retryable: false,
+    });
+    expect(idemp).toBeInstanceOf(ConflictError);
+    expect(idemp.code).toBe(ErrorCode.IDEMPOTENCY_CONFLICT);
+    expect(idemp.retryable).toBe(false);
+
+    const replTimeout = ServerError.fromResponse({
+      code: 'REPLICATION_TIMEOUT',
+      message: 'Replica ack timed out',
+      retryable: true,
+    });
+    expect(replTimeout.code).toBe(ErrorCode.REPLICATION_TIMEOUT);
+    expect(replTimeout.retryable).toBe(true);
   });
 });
 

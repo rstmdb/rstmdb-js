@@ -50,6 +50,12 @@ export {
   type CompactOptions,
   type CompactResult,
   type FlushAllResult,
+  type ReplicationStatusResult,
+  type BackupBeginOptions,
+  type BackupBeginResult,
+  type BackupChunkOptions,
+  type BackupChunkResult,
+  type BackupEndResult,
 } from './types/results.js';
 
 // Streaming types

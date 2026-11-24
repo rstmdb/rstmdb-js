@@ -63,6 +63,7 @@ export class ServerError extends RstmdbError {
   static fromResponse(response: {
     code: string;
     message: string;
+    retryable?: boolean;
     details?: Record<string, unknown>;
   }): ServerError {
     const code = (response.code as ErrorCode) || ErrorCode.INTERNAL_ERROR;
@@ -76,6 +77,7 @@ export class ServerError extends RstmdbError {
         return new NotFoundError(message, code, { details: response.details });
 
       case ErrorCode.CONFLICT:
+      case ErrorCode.IDEMPOTENCY_CONFLICT:
       case ErrorCode.INSTANCE_EXISTS:
       case ErrorCode.MACHINE_VERSION_EXISTS:
         return new ConflictError(message, code, { details: response.details });
@@ -91,7 +93,10 @@ export class ServerError extends RstmdbError {
         return new GuardFailedError(message, { details: response.details });
 
       default:
-        return new ServerError(message, code, { details: response.details });
+        return new ServerError(message, code, {
+          retryable: response.retryable,
+          details: response.details,
+        });
     }
   }
 }

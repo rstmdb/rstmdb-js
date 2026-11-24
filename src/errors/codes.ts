@@ -21,12 +21,19 @@ export enum ErrorCode {
   // State machine errors
   INVALID_TRANSITION = 'INVALID_TRANSITION',
   GUARD_FAILED = 'GUARD_FAILED',
+  GUARD_UNKNOWN = 'GUARD_UNKNOWN',
   CONFLICT = 'CONFLICT',
+  IDEMPOTENCY_CONFLICT = 'IDEMPOTENCY_CONFLICT',
 
   // System errors
   WAL_IO_ERROR = 'WAL_IO_ERROR',
   INTERNAL_ERROR = 'INTERNAL_ERROR',
   RATE_LIMITED = 'RATE_LIMITED',
+
+  // Replication errors
+  READ_ONLY_MODE = 'READ_ONLY_MODE',
+  REPLICATION_TIMEOUT = 'REPLICATION_TIMEOUT',
+  REPLICATION_ERROR = 'REPLICATION_ERROR',
 
   // Client-side errors
   CONNECTION_FAILED = 'CONNECTION_FAILED',
@@ -45,6 +52,7 @@ export function isRetryableCode(code: ErrorCode): boolean {
     case ErrorCode.RATE_LIMITED:
     case ErrorCode.WAL_IO_ERROR:
     case ErrorCode.INTERNAL_ERROR:
+    case ErrorCode.REPLICATION_TIMEOUT:
       return true;
     default:
       return false;
